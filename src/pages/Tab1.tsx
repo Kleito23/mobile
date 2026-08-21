@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import {
   IonBadge,
   IonButton,
@@ -24,28 +25,35 @@ import {
 import {
   addOutline,
   alertCircleOutline,
+  checkmarkCircleOutline,
+  warningOutline,
   walletOutline
 } from 'ionicons/icons';
 
 import './Tab1.css';
 
-/*
- * Estructura que representa un gasto.
- * Cada gasto tiene concepto, categoría y monto.
- */
+
+/* Estructura de cada gasto */
 interface Expense {
   concept: string;
   category: string;
   amount: number;
 }
 
+
 const Tab1: React.FC = () => {
 
-  /*
-   * Lista de gastos.
-   * useState permite modificar esta lista mientras
-   * el usuario utiliza la aplicación.
-   */
+  /* ========================================
+     PRESUPUESTO
+     ======================================== */
+
+  const weeklyBudget = 3000;
+
+
+  /* ========================================
+     LISTA DE GASTOS
+     ======================================== */
+
   const [expenses, setExpenses] = useState<Expense[]>([
     {
       concept: 'Almuerzo',
@@ -64,207 +72,373 @@ const Tab1: React.FC = () => {
     }
   ]);
 
-  /*
-   * Controla si la ventana para agregar
-   * un nuevo gasto está abierta.
-   */
+
+  /* ========================================
+     VARIABLES DEL FORMULARIO
+     ======================================== */
+
   const [showModal, setShowModal] = useState(false);
 
-  /*
-   * Variables del formulario.
-   */
   const [concept, setConcept] = useState('');
+
   const [category, setCategory] = useState('Comida');
+
   const [amount, setAmount] = useState('');
 
-  /*
-   * Funcionalidades que todavía se desarrollarán.
-   */
-  const pendingIdeas = [
-    'Agregar ingresos',
-    'Guardar historial',
-    'Configurar alertas'
-  ];
+
+  /* ========================================
+     CÁLCULOS AUTOMÁTICOS
+     ======================================== */
 
   /*
-   * Función encargada de registrar un gasto.
+   * Suma todos los gastos registrados.
    */
+  const totalSpent = expenses.reduce(
+    (total, expense) => total + expense.amount,
+    0
+  );
+
+
+  /*
+   * Calcula cuánto dinero queda disponible.
+   */
+  const availableBudget = weeklyBudget - totalSpent;
+
+
+  /*
+   * Calcula el porcentaje utilizado.
+   */
+  const percentageUsed =
+    (totalSpent / weeklyBudget) * 100;
+
+
+  /*
+   * IonProgressBar utiliza valores entre 0 y 1.
+   *
+   * Ejemplo:
+   * 50% = 0.50
+   *
+   * Math.min evita que la barra pase de 100%.
+   */
+  const progressValue = Math.min(
+    totalSpent / weeklyBudget,
+    1
+  );
+
+
+  /* ========================================
+     ESTADO DEL PRESUPUESTO
+     ======================================== */
+
+  let budgetMessage = 'Tus gastos están bajo control';
+
+  let budgetColor:
+    'success' | 'warning' | 'danger' = 'success';
+
+  let budgetIcon = checkmarkCircleOutline;
+
+
+  if (percentageUsed >= 100) {
+
+    budgetMessage = 'Has excedido tu presupuesto';
+
+    budgetColor = 'danger';
+
+    budgetIcon = alertCircleOutline;
+
+  } else if (percentageUsed >= 90) {
+
+    budgetMessage =
+      'Cuidado, casi alcanzas tu presupuesto';
+
+    budgetColor = 'danger';
+
+    budgetIcon = warningOutline;
+
+  } else if (percentageUsed >= 70) {
+
+    budgetMessage =
+      'Te estás acercando al límite';
+
+    budgetColor = 'warning';
+
+    budgetIcon = warningOutline;
+  }
+
+
+  /* ========================================
+     FUNCIÓN PARA AGREGAR GASTO
+     ======================================== */
+
   const addExpense = () => {
 
-    // Convertimos el monto ingresado a número.
     const numericAmount = Number(amount);
 
+
     /*
-     * Validación:
-     * no permite guardar si el concepto está vacío
-     * o si el monto es menor o igual a cero.
+     * Validación básica.
      */
     if (!concept.trim() || numericAmount <= 0) {
       return;
     }
 
+
     /*
      * Creamos el nuevo gasto.
      */
     const newExpense: Expense = {
+
       concept: concept.trim(),
+
       category: category,
+
       amount: numericAmount
+
     };
 
+
     /*
-     * Agregamos el nuevo gasto al inicio
-     * de la lista existente.
+     * Lo agregamos al principio de la lista.
      */
     setExpenses([
       newExpense,
       ...expenses
     ]);
 
-    /*
-     * Limpiamos el formulario después
-     * de guardar.
-     */
-    setConcept('');
-    setCategory('Comida');
-    setAmount('');
 
     /*
-     * Cerramos la ventana.
+     * Limpiamos formulario.
+     */
+    setConcept('');
+
+    setCategory('Comida');
+
+    setAmount('');
+
+
+    /*
+     * Cerramos modal.
      */
     setShowModal(false);
   };
 
+
   return (
+
     <IonPage>
 
-      {/* ENCABEZADO */}
+
+      {/* =====================================
+          ENCABEZADO
+          ===================================== */}
 
       <IonHeader>
+
         <IonToolbar>
+
           <IonTitle>
             Control de gastos
           </IonTitle>
+
         </IonToolbar>
+
       </IonHeader>
 
 
-      {/* CONTENIDO PRINCIPAL */}
+
+      {/* =====================================
+          CONTENIDO
+          ===================================== */}
 
       <IonContent fullscreen>
 
+
         <IonHeader collapse="condense">
+
           <IonToolbar>
+
             <IonTitle size="large">
               Control de gastos
             </IonTitle>
+
           </IonToolbar>
+
         </IonHeader>
+
 
 
         <div className="expenses-shell">
 
-          {/* TARJETA DEL PRESUPUESTO */}
+
+          {/* =================================
+              RESUMEN DEL PRESUPUESTO
+              ================================= */}
 
           <IonCard className="hero-card">
 
             <IonCardContent>
 
+
               <div className="hero-header">
 
+
+                {/* ESTADO AUTOMÁTICO */}
+
                 <IonChip
-                  color="warning"
+                  color={budgetColor}
                   className="status-chip"
                 >
-                  <IonIcon
-                    icon={alertCircleOutline}
-                  />
+
+                  <IonIcon icon={budgetIcon} />
 
                   <IonLabel>
-                    Avance parcial
+                    {budgetMessage}
                   </IonLabel>
 
                 </IonChip>
 
 
-                <IonBadge color="success">
-                  Semana 1
+                <IonBadge color="primary">
+                  Semana actual
                 </IonBadge>
+
 
               </div>
 
 
+
               <h1>
-                Tu presupuesto diario,
-                en un solo lugar
+                Tu presupuesto semanal
               </h1>
 
 
               <p>
                 Registra tus gastos y controla
-                tu presupuesto desde una sola
-                aplicación.
+                automáticamente cuánto dinero
+                tienes disponible.
               </p>
 
 
-              {/* DINERO DISPONIBLE */}
+
+              {/* =============================
+                  DINERO DISPONIBLE
+                  ============================= */}
 
               <div className="budget-box">
+
 
                 <div>
 
                   <IonText color="medium">
-                    Disponible hoy
+                    Disponible
                   </IonText>
 
+
                   <strong>
-                    $1,240
+
+                    ${availableBudget.toFixed(2)}
+
                   </strong>
 
                 </div>
 
 
-                <IonIcon
-                  icon={walletOutline}
-                />
+                <IonIcon icon={walletOutline} />
+
 
               </div>
 
 
-              {/* META SEMANAL */}
+
+              {/* =============================
+                  TOTAL GASTADO
+                  ============================= */}
 
               <div className="budget-meta">
 
                 <span>
-                  Meta semanal
+                  Total gastado
                 </span>
 
                 <strong>
-                  $3,000
+                  ${totalSpent.toFixed(2)}
                 </strong>
 
               </div>
 
 
+
+              {/* =============================
+                  PRESUPUESTO TOTAL
+                  ============================= */}
+
+              <div className="budget-meta">
+
+                <span>
+                  Presupuesto semanal
+                </span>
+
+                <strong>
+                  ${weeklyBudget.toFixed(2)}
+                </strong>
+
+              </div>
+
+
+
+              {/* =============================
+                  BARRA DE PROGRESO
+                  ============================= */}
+
               <IonProgressBar
-                value={0.58}
+                value={progressValue}
+                color={budgetColor}
               />
+
+
+
+              {/* =============================
+                  PORCENTAJE UTILIZADO
+                  ============================= */}
+
+              <div
+                style={{
+                  marginTop: '10px',
+                  textAlign: 'right'
+                }}
+              >
+
+                <IonText color={budgetColor}>
+
+                  <strong>
+
+                    {percentageUsed.toFixed(1)}%
+                    {' '}utilizado
+
+                  </strong>
+
+                </IonText>
+
+              </div>
+
 
             </IonCardContent>
 
           </IonCard>
 
 
-          {/* TÍTULO DE GASTOS */}
+
+          {/* =================================
+              GASTOS RECIENTES
+              ================================= */}
 
           <div className="section-title">
+
 
             <h2>
               Gastos recientes
             </h2>
 
-
-            {/* BOTÓN PARA ABRIR EL FORMULARIO */}
 
             <IonButton
               fill="clear"
@@ -281,96 +455,115 @@ const Tab1: React.FC = () => {
 
             </IonButton>
 
+
           </div>
 
 
-          {/* LISTA DE GASTOS */}
+
+          {/* =================================
+              LISTA
+              ================================= */}
 
           <IonCard className="list-card">
 
             <IonCardContent>
 
-              {expenses.map((expense, index) => (
 
-                <IonItem
-                  key={`${expense.concept}-${index}`}
-                  lines="none"
-                  className="expense-item"
-                >
+              {expenses.map(
+                (expense, index) => (
 
-                  <IonLabel>
-
-                    <h3>
-                      {expense.concept}
-                    </h3>
-
-                    <p>
-                      {expense.category}
-                    </p>
-
-                  </IonLabel>
+                  <IonItem
+                    key={`${expense.concept}-${index}`}
+                    lines="none"
+                    className="expense-item"
+                  >
 
 
-                  <strong>
-                    ${expense.amount.toFixed(2)}
-                  </strong>
+                    <IonLabel>
 
-                </IonItem>
+                      <h3>
+                        {expense.concept}
+                      </h3>
 
-              ))}
+                      <p>
+                        {expense.category}
+                      </p>
+
+                    </IonLabel>
+
+
+                    <strong>
+
+                      ${expense.amount.toFixed(2)}
+
+                    </strong>
+
+
+                  </IonItem>
+
+                )
+              )}
+
 
             </IonCardContent>
 
           </IonCard>
 
 
-          {/* PRÓXIMAS FUNCIONALIDADES */}
+
+          {/* =================================
+              INFORMACIÓN
+              ================================= */}
 
           <IonCard className="pending-card">
 
             <IonCardContent>
 
               <h2>
-                Próximas funcionalidades
+                Resumen
               </h2>
 
 
-              <div className="pending-list">
+              <p>
+                El presupuesto se actualiza
+                automáticamente cada vez que
+                registras un nuevo gasto.
+              </p>
 
-                {pendingIdeas.map((idea) => (
 
-                  <IonChip
-                    key={idea}
-                    outline
-                  >
+              <IonChip outline>
 
-                    <IonLabel>
-                      {idea}
-                    </IonLabel>
+                <IonLabel>
 
-                  </IonChip>
+                  {expenses.length}
+                  {' '}
+                  gastos registrados
 
-                ))}
+                </IonLabel>
 
-              </div>
+              </IonChip>
+
 
             </IonCardContent>
 
           </IonCard>
 
+
         </div>
 
 
-        {/* ================================= */}
-        {/* MODAL PARA REGISTRAR NUEVO GASTO */}
-        {/* ================================= */}
+
+        {/* =====================================
+            MODAL NUEVO GASTO
+            ===================================== */}
 
         <IonModal
           isOpen={showModal}
-          onDidDismiss={() => setShowModal(false)}
+          onDidDismiss={() =>
+            setShowModal(false)
+          }
         >
 
-          {/* ENCABEZADO DEL FORMULARIO */}
 
           <IonHeader>
 
@@ -385,7 +578,6 @@ const Tab1: React.FC = () => {
           </IonHeader>
 
 
-          {/* FORMULARIO */}
 
           <IonContent className="ion-padding">
 
@@ -409,6 +601,7 @@ const Tab1: React.FC = () => {
             </IonItem>
 
 
+
             {/* MONTO */}
 
             <IonItem>
@@ -429,6 +622,7 @@ const Tab1: React.FC = () => {
             </IonItem>
 
 
+
             {/* CATEGORÍA */}
 
             <IonItem>
@@ -444,53 +638,46 @@ const Tab1: React.FC = () => {
                 }
               >
 
-                <IonSelectOption
-                  value="Comida"
-                >
+
+                <IonSelectOption value="Comida">
                   Comida
                 </IonSelectOption>
 
 
-                <IonSelectOption
-                  value="Transporte"
-                >
+                <IonSelectOption value="Transporte">
                   Transporte
                 </IonSelectOption>
 
 
-                <IonSelectOption
-                  value="Entretenimiento"
-                >
+                <IonSelectOption value="Entretenimiento">
                   Entretenimiento
                 </IonSelectOption>
 
 
-                <IonSelectOption
-                  value="Compras"
-                >
+                <IonSelectOption value="Compras">
                   Compras
                 </IonSelectOption>
 
 
-                <IonSelectOption
-                  value="Estudios"
-                >
+                <IonSelectOption value="Estudios">
                   Estudios
                 </IonSelectOption>
 
 
-                <IonSelectOption
-                  value="Otros"
-                >
+                <IonSelectOption value="Otros">
                   Otros
                 </IonSelectOption>
+
 
               </IonSelect>
 
             </IonItem>
 
 
-            {/* BOTONES */}
+
+            {/* =================================
+                BOTONES
+                ================================= */}
 
             <div
               style={{
@@ -500,6 +687,7 @@ const Tab1: React.FC = () => {
               }}
             >
 
+
               <IonButton
                 expand="block"
                 fill="outline"
@@ -507,27 +695,40 @@ const Tab1: React.FC = () => {
                   setShowModal(false)
                 }
               >
+
                 Cancelar
+
               </IonButton>
+
 
 
               <IonButton
                 expand="block"
                 onClick={addExpense}
               >
+
                 Guardar gasto
+
               </IonButton>
+
 
             </div>
 
+
           </IonContent>
+
 
         </IonModal>
 
+
       </IonContent>
 
+
     </IonPage>
+
   );
+
 };
+
 
 export default Tab1;
