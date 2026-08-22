@@ -111,3 +111,31 @@
 	gap: 10px;
 	margin-top: 12px;
 }
+
+.today-summary,
+.category-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.today-summary {
+	margin-top: 12px;
+	color: var(--ion-color-medium);
+}
+
+.today-summary strong {
+	color: var(--ion-text-color);
+	font-size: 1.25rem;
+}
+
+.category-summary {
+	border-top: 1px solid var(--ion-color-light);
+	margin-top: 16px;
+	padding-top: 8px;
+}
+
+.category-row {
+	padding: 8px 0;
+	font-size: 0.95rem;
+}

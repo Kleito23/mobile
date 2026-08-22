@@ -1,0 +1,28 @@
+.settings-shell {
+	padding: 24px 16px;
+}
+
+.settings-shell h1 {
+	margin: 0;
+	font-size: 2rem;
+}
+
+.settings-intro {
+	margin: 6px 0 20px;
+	color: var(--ion-color-medium);
+}
+
+.settings-card {
+	margin: 0;
+	border-radius: 18px;
+}
+
+.settings-card ion-item {
+	--padding-start: 0;
+	--inner-padding-end: 0;
+	margin-bottom: 12px;
+}
+
+.settings-card ion-button {
+	margin-top: 20px;
+}
